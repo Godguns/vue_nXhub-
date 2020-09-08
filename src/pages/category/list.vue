@@ -77,6 +77,24 @@
                 <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
                 </el-upload>
             </el-form-item>
+            <el-form-item label="专辑内容">
+                <!-- <el-input  v-model="master_img"></el-input> -->
+                <el-upload
+                :on-success="handleAvatarSuccess"
+                class="upload-demo"
+                action="http://upload-z2.qiniup.com"
+                :on-preview="handlePreview"
+                :on-remove="handleRemove"
+                :before-remove="beforeRemove"
+                multiple
+                  :data="{token: token}"
+                :limit="10"
+                :on-exceed="handleExceed"
+               >
+                <el-button size="small" type="primary">点击上传</el-button>
+                <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                </el-upload>
+            </el-form-item>
             <el-form-item label="作者">
                 <el-input  v-model="Album_author"></el-input>
             </el-form-item>
@@ -161,7 +179,10 @@ export default {
         console.log(file);
       },
       handleAvatarSuccess(res, file){
-          this.master_img='http://dongdove.cn/'+res.hash
+          this.master_img='http://dongdove.cn/'+res.hash;
+          var imgitem='http://dongdove.cn/'+res.hash;
+          this.Album_imgs.push(imgitem)
+
             console.log(res)
       },
       handleExceed(files, fileList) {
@@ -271,6 +292,7 @@ export default {
               })
               this.visible=false;
               this.getablum()
+              location.reload()
           })
             //将form变为初始值
 

@@ -1,223 +1,88 @@
 <template>
     <div class="home">
-       <br>
-        <!-- 按钮 -->
-        <el-button type="success" @click="toAddHandler">添加</el-button>
-        <el-button type="danger" >批量删除</el-button>
-       
-        <el-table :data="categorys">
-            <el-table-column prop="_id" label="编号"></el-table-column>
-           
-              <el-table-column prop="banner" label="封面">
-                   <template slot-scope="scope">
-          
-             
-              <img slot="reference" :src="scope.row.banner" style="width: 80px;">
-            
-        </template>
-           </el-table-column>       
-             
-            <el-table-column label="操作">
-                <!-- v-slot用于获取当前行数据 -->
-                <template v-slot="slot">
-                    <a href="" @click.prevent="toDeleteHandler(slot.row)">删除</a>
-                   
-                </template>
-            </el-table-column>
-
-        </el-table>
-        <!-- /表格 -->
-        <!-- 分页 -->
-         <el-pagination layout="prev, pager, next" :total="50"></el-pagination>
-        <!-- /分页 -->
-        <!-- 模态框    冒号表示引用脚本-->
-         <el-dialog :title="title" :visible.sync="visible" width="60%" >
-                <h2>确定要删除此项吗</h2>
-         <span slot="footer" class="dialog-footer">
-         <el-button @click="visible = false">取 消</el-button>
-         <!-- @click=onclick -->
-         <el-button type="primary" @click="submitHandler">确 定</el-button>
-         </span>
-        </el-dialog>
-        <!-- /模态框 -->
         
+     
+                <div class="upcard">
+                <b-card no-body class="overflow-hidden" style="max-width: 540px;">
+                    <b-row no-gutters>
+                    <b-col md="6">
+                        <b-card-img :src="imageUrl" class="rounded-0"></b-card-img>
+                    </b-col>
+                    <b-col md="6">
+                        <b-card-body class="cardcontent" >
+                       
+                               <el-upload
+                               :on-exceed="toast"
+                               :limit="1"
+                               :multiple="no"
+                                class="avatar-uploader"
+                                action="http://upload-z2.qiniup.com"
+                                    :on-remove="remove"
+                                    :on-success="handleAvatarSuccess"
+                                    :data="{token: token}">
+                                <!-- <img v-if="imageUrl" :src="imageUrl" class="avatar"> -->
+                                <i class="el-icon-plus avatar-uploader-icon"></i>
+                                </el-upload>
+                         
+                    
+
+                        </b-card-body>
+                    </b-col>
+                    </b-row>
+                </b-card>
+                 <el-divider  content-position="left">  为分享的图片添加描述</el-divider>
+                       <div class="message">
+                                    <div>
+                                    <b-form @submit.stop.prevent>
+                                      
+                                        <b-input type="text" v-model="info"  aria-describedby="password-help-block"></b-input>
+                                       
+                                    </b-form>
+                                    </div>
+
+                        </div>
+                          <el-divider  content-position="left">Title将会展示为图片的图题</el-divider>
+                       <div class="message">
+                                    <div>
+                                    <b-form @submit.stop.prevent>
+                                      
+                                        <b-input type="text" v-model="title" aria-describedby="password-help-block"></b-input>
+                                      
+                                    </b-form>
+                                    </div>
+
+                        </div>
+                           <el-divider  content-position="left">为分享的图片添加标签！(输入后点击空白处)</el-divider><br>
+                           <el-tag
+                            :key="tag"
+                            v-for="tag in dynamicTags"
+                            closable
+                            :disable-transitions="false"
+                            @close="handleClose(tag)">
+                            {{tag}}
+                            </el-tag>
+                            <el-input
+                            class="input-new-tag"
+                            v-if="inputVisible"
+                            v-model="inputValue"
+                            ref="saveTagInput"
+                            size="small"
+                            @keyup.enter.native="handleInputConfirm"
+                            @blur="handleInputConfirm"
+                            >
+                            </el-input>
+                            <el-button v-else class="button-new-tag" size="small" @click="showInput">+ 新标签</el-button>
+                     <el-button @click="sendmsg" class="submit" type="success">上传图片&发布</el-button>
+                </div>
     </div>
 </template>
-
-<script>
-//暴露接口
-import request from '@/utils/request'
-import querystring from 'querystring'
-export default {
-    beforeMount(){
-       // this.submitHandler()
-    },
-    // 存放网页中需要调用的方法
-    methods:{
-         handleRemove(file, fileList) {
-        console.log(file, fileList);
-      },
-      handlePreview(file) {
-        console.log(file);
-      },
-      handleAvatarSuccess(res, file){
-          this.master_img='http://dongdove.cn/'+res.hash
-            console.log(res)
-      },
-      handleExceed(files, fileList) {
-        this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
-      },
-      beforeRemove(file, fileList) {
-        return this.$confirm(`确定移除 ${ file.name }？`);
-      },
-        //以下是tags方法
-        handleClose(tag) {
-        this.Album_imgs.splice(this.Album_imgs.indexOf(tag), 1);
-      },
-
-      showInput() {
-        this.inputVisible = true;
-        this.$nextTick(_ => {
-          this.$refs.saveTagInput.$refs.input.focus();
-        });
-      },
-
-      handleInputConfirm() {
-        let inputValue = this.inputValue;
-        if (inputValue) {
-          this.Album_imgs.push(inputValue);
-        }
-        this.inputVisible = false;
-        this.inputValue = '';
-      },
-        submitHandler(){
-       
-        },
-        /*布尔值格式化：cellValue为后台返回的值
-*/
-            formatBoolean: function (row, column, cellValue) {
-                var ret = ''  //你想在页面展示的值
-                if (cellValue) {
-                    ret = "是"  //根据自己的需求设定
-                } else {
-                    ret = "否"
-                }
-                return ret;
-            },
-       
-        toUpdateHandler(row){
-            this.isadd=false
-            this.title="修改栏目信息";
-          //  this.form=row;
-                    this.Album_imgs=row.Album_imgs,
-                    this.Album_info=row.Album_info,
-                    this.Album_author=row.Album_author,
-                    this.master_img=row.master_img,
-                    this.Album_name=row.Album_name,
-                    this. Album_time=row.Album_time,
-                    this.isRecommend=row.isRecommend,
-                    this.id=row._id
-            this.visible=true;
-        },
-        closeModalHandler(){
-            this.visible=false;
-        },
-       toAddHandler(){
-            this.title="添加栏目信息";
-            this.isadd=true
-           this.form={
-               type:"category"
-           }
-           this.visible=true;
-          
-           
-       },
-       toDeleteHandler(row){
-         console.log(row)
-            let url="/del_banner";
-         request({
-           url:url,
-           method:'get',
-           params:{
-             _id:row._id
-           }
-         }).then(response=>{
-           this.$message({
-          message: '删除成功',
-          type: 'success'
-        });
-        this.getablum()
-         })
-       },
-       getablum(){
-            let url="/get_bannner";
-          request({
-          url,
-          method:"get",
-          //为了告诉后台我的请求体中放的是查询字符串
-          headers:{
-              "Content-Type":"application/x-www-form-urlencoded"
-          },
-          //将this.form转换为查询字符串发送给后台
-          data: querystring.stringify(this.form)
-          }).then((response)=>{
-              //请求结束
-              this.closeModalHandler;
-            
-
-
-              this.categorys=response.data
-             
-              
-          })
-       }
-    },
-    //用于存放要在网页中存放的数据
-    data(){
-        return {    
-                    isadd:true,
-                   id:"",
-                    token:"",
-                    inputVisible: false,
-                     inputValue: '',
-                    Album_imgs:[],
-                    Album_info:"",
-                    Album_author:"",
-                    master_img:"",
-                    Album_name:"",
-                    Album_time:"",
-                    isRecommend:"",
-                    title:"录入栏目信息",
-                    visible:false,
-                    categorys:[],
-                    form:{
-                        type:"category"
-                    }
-        }
-    },
-    created(){
-        request({
-            url:'/api/v1/file/token',
-            method:'get',
-
-        }).then(response=>{
-            this.token=response.token
-        })
-    this.getablum();
-         
-    },
-}
-</script>
-
 <style scoped>
-.imgs{
-    display: flex;
+.submit{
+    width: 441px;
+    margin-top: 20px;
+    background-color: #27ae60;
 }
-
-    .home{
-        margin-left: 10px;
-    }
-        .el-tag + .el-tag {
+  .el-tag + .el-tag {
     margin-left: 10px;
   }
   .button-new-tag {
@@ -232,4 +97,149 @@ export default {
     margin-left: 10px;
     vertical-align: bottom;
   }
+.message{
+    width: 442px;
+}
+.el-divider__text{
+    color: #606266;
+     background: rgb(243, 246, 249);
+    
+}
+
+.home{
+    position: relative;
+    margin-top: 300px;
+    
+}
+.upcard{
+   
+    width: 442px;
+  
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%,-50%);
+}
+.el-icon-plus{
+    border:1px dashed #ccc;
+}
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+  .avatar {
+    max-width: 250px;
+    max-height: 300px;
+    display: block;
+  }
 </style>
+<script>
+import request from '@/utils/request'
+export default {
+    components:{
+       
+
+    },
+     data() {
+      return {
+          no:false,
+          title:"",
+          info:"",
+        dynamicTags: [],
+        inputVisible: false,
+        inputValue: '',
+        imageUrl: "",
+        token:""
+      };
+    },
+    created(){
+     request({
+       url:'/api/v1/file/token',
+       method:'get',
+       
+     }).then(response=>{
+      this.token= response.token
+     })
+
+    },
+    methods: {
+      handleAvatarSuccess(res) {
+            this.$message.success('嗯呐,上传已经完成了！');
+        this.imageUrl = 'http://dongdove.cn/'+res.hash;
+      },
+       handleClose(tag) {
+        this.dynamicTags.splice(this.dynamicTags.indexOf(tag), 1);
+      },
+
+      showInput() {
+        this.inputVisible = true;
+        this.$nextTick(()=> {
+          this.$refs.saveTagInput.$refs.input.focus();
+        });
+      },
+
+      handleInputConfirm() {
+        let inputValue = this.inputValue;
+        if (inputValue) {
+          this.dynamicTags.push(inputValue);
+        }
+        this.inputVisible = false;
+        this.inputValue = '';
+      },
+      toast(){
+            this.$message.error('错了哦，每次只允许上传一张图片');
+      },
+        sendmsg(){
+            request({
+                url:'/supdate',
+                method:'get',
+                params:{
+                    tag:this.dynamicTags,
+                    info:this.info,
+                    title:this.title,
+                    author:sessionStorage.getItem('username'),
+                    imgsrc:this.imageUrl,
+                    time:this.getNowFormatDate(),
+                    avater:sessionStorage.getItem('avater')
+                }
+            }).then(()=>{
+                 this.$message({
+                message: '🍦！已发布',
+                type: 'success'
+                 });
+                 console.log(this.token)
+                 //console.log()
+                  this.$router.push({path:'/'})
+            })
+        },
+ getNowFormatDate() {
+    var date = new Date();
+    var year = date.getFullYear();
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = '0' + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = '0' + strDate;
+    }
+    var currentdate = year + '-' + month + '-' + strDate;
+    return currentdate;
+}
+    }
+}
+</script>

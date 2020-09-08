@@ -34,10 +34,13 @@ const actions = {
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password }).then(response => {
         const  data  = response.token
-        //console.log(data)
+        console.log(data)
         commit('SET_TOKEN', data)
         setToken(data)
         resolve()
+        sessionStorage.setItem('username',response.data.username)
+        sessionStorage.setItem('avater',response.data.avater)
+       // console.log("用户名密码为",response.data)
       }).catch(error => {
         reject(error)
       })

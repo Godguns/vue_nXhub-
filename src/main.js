@@ -11,7 +11,14 @@ import '@/styles/index.scss' // global css
 import App from './App'
 import store from './store'
 import router from './router'
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
+// Install BootstrapVue
+Vue.use(BootstrapVue)
+// Optionally install the BootstrapVue icon components plugin
+Vue.use(IconsPlugin)
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
 import '@/icons' // icon
 import '@/permission' // permission control
 
@@ -23,11 +30,11 @@ import '@/permission' // permission control
  * Currently MockJs will be used in the production environment,
  * please remove it before going online! ! !
  */
-import { mockXHR } from '../mock'
+//import { mockXHR } from '../mock'
 // if (process.env.NODE_ENV === 'production') {
  
 // }
- mockXHR()
+ //mockXHR()
 // set ElementUI lang to EN
 Vue.use(ElementUI, { locale })
 // 如果想要中文版 element-ui，按如下方式声明

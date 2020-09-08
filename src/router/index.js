@@ -70,12 +70,19 @@ export const constantRoutes = [
   {
     path: '/address',
     component: Layout,
+    meta: { title: '社区管理', icon: 'tree' },
     children: [
       {
         path: 'list',
         name: 'AddressList',
         component: () => import('@/pages/address/list'),
-        meta: { title: '轮播图管理', icon: 'tree' }
+        meta: { title: '上传图片', icon: 'tree' }
+      },
+      {
+        path: 'list2',
+        name: 'AddressList2',
+        component: () => import('@/pages/address/list2'),
+        meta: { title: 'pixiv社区管理', icon: 'tree' }
       }
     ]
   },
@@ -103,7 +110,7 @@ export const constantRoutes = [
         path: 'list',
         name: 'CategorysList',
         component: () => import('@/pages/category/list'),
-        meta: { title: '推荐管理', icon: 'nested' }
+        meta: { title: '专辑管理', icon: 'nested' }
       },
      
       
