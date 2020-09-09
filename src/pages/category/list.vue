@@ -37,7 +37,7 @@
             <el-table-column label="操作">
                 <!-- v-slot用于获取当前行数据 -->
                 <template v-slot="slot">
-                    <a href="" @click.prevent="toDeleteHandler(slot.row.id)">删除</a>
+                    <a href="" @click.prevent="toDeleteHandler(slot.row)">删除</a>
                     <a href="" @click.prevent="toUpdateHandler(slot.row)">修改</a>
                 </template>
             </el-table-column>
@@ -62,6 +62,7 @@
             <el-form-item label="专辑封面">
                 <!-- <el-input  v-model="master_img"></el-input> -->
                 <el-upload
+                list-type="picture"
                 :on-success="handleAvatarSuccess"
                 class="upload-demo"
                 action="http://upload-z2.qiniup.com"
@@ -74,13 +75,14 @@
                 :on-exceed="handleExceed"
                >
                 <el-button size="small" type="primary">点击上传</el-button>
-                <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                
                 </el-upload>
             </el-form-item>
             <el-form-item label="专辑内容">
                 <!-- <el-input  v-model="master_img"></el-input> -->
                 <el-upload
-                :on-success="handleAvatarSuccess"
+                list-type="picture"
+                :on-success="handleAvatarSuccess2"
                 class="upload-demo"
                 action="http://upload-z2.qiniup.com"
                 :on-preview="handlePreview"
@@ -92,7 +94,7 @@
                 :on-exceed="handleExceed"
                >
                 <el-button size="small" type="primary">点击上传</el-button>
-                <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+               
                 </el-upload>
             </el-form-item>
             <el-form-item label="作者">
@@ -102,6 +104,7 @@
                 <el-input  v-model="Album_time"></el-input>
             </el-form-item>
             <el-form-item label="是否推荐">
+              <span  class="el-upload__tip">请填写 true 或者 false</span>
                 <el-input  v-model="isRecommend"></el-input>
             </el-form-item>
             <el-form-item label="内容链接">
@@ -180,13 +183,21 @@ export default {
       },
       handleAvatarSuccess(res, file){
           this.master_img='http://dongdove.cn/'+res.hash;
-          var imgitem='http://dongdove.cn/'+res.hash;
-          this.Album_imgs.push(imgitem)
+          //var imgitem='http://dongdove.cn/'+res.hash;
+          //this.Album_imgs.push(imgitem)
 
             console.log(res)
       },
+        handleAvatarSuccess2(res, file){
+          //this.master_img='http://dongdove.cn/'+res.hash;
+          var imgitem='http://dongdove.cn/'+res.hash;
+          
+          this.Album_imgs.push(imgitem)
+
+           
+      },
       handleExceed(files, fileList) {
-        this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+        this.$message.warning(`当前限制选择 10 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
       },
       beforeRemove(file, fileList) {
         return this.$confirm(`确定移除 ${ file.name }？`);
@@ -265,12 +276,14 @@ export default {
 
             }else{
                     var url='/update_album'
+                    console.log(this.Album_tags,"tags")
+                    console.log(this.Album_imgs,"imgs")
             request({
           url,
           method:"get",
           params:{  
                      Album_tags:this.Album_tags,
-                   _id:this.id,
+                    id:this.id,
                     Album_imgs:this.Album_imgs,
                     Album_info:this.Album_info,
                     Album_author:this.Album_author,
@@ -284,15 +297,16 @@ export default {
               "Content-Type":"application/x-www-form-urlencoded"
           },
           //将this.form转换为查询字符串发送给后台
-          data: querystring.stringify(this.form)
+          //data: querystring.stringify(this.form)
           }).then(response=>{
+
               this.$message({
                   type:"success",
                   message:"修改成功"
               })
               this.visible=false;
               this.getablum()
-              location.reload()
+              //location.reload()
           })
             //将form变为初始值
 
@@ -313,16 +327,34 @@ export default {
         toUpdateHandler(row){
             this.isadd=false
             this.title="修改栏目信息";
+             console.log(row.Album_imgs,"测试下")
           //  this.form=row;
-                    this.Album_imgs=row.Album_imgs,
+                    this.Album_imgs=row.Album_imgs===null?[]:row.Album_imgs,
                     this.Album_info=row.Album_info,
                     this.Album_author=row.Album_author,
                     this.master_img=row.master_img,
                     this.Album_name=row.Album_name,
-                    this. Album_time=row.Album_time,
+                    this.Album_time=row.Album_time,
                     this.isRecommend=row.isRecommend,
                     this.id=row._id
+                     console.log(this.Album_imgs,"测试下2")
             this.visible=true;
+          
+        },
+        toDeleteHandler(row){
+              request({
+                url:'/del_album',
+                method:'get',
+                params:{
+                  id:row._id
+                }
+              }).then(res=>{
+                 this.$message({
+          message: '恭喜你， 删除成功',
+          type: 'success'
+        });
+                this.getablum()
+              })
         },
         closeModalHandler(){
             this.visible=false;
